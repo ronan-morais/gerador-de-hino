@@ -1,16 +1,47 @@
 ---
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const genAi = new GoogleGenerativeAI("AIzaSyDBshH5tisCsFrXGTX3ulTQxU3KnJQFi_I");
+
+async function run() {
+  const model = genAi.getGenerativeModel({ model: "gemini-pro" });
+  const prompt =
+    "escreva uma curta poesia rimada sobre o Santo Daime como se fosse um hino (com frases curtas)";
+  const result = await model.generateContent(prompt);
+
+  try {
+    const response = await result.response;
+    return response.text();
+    //console.log('Response is valid:', response.text());
+  } catch (error) {
+    const problematicRatings = error.response.promptFeedback.safetyRatings.some(
+      rating => rating.probability === "HIGH" || rating.probability === "MEDIUM"
+    );
+
+    if (problematicRatings) {
+      console.error("Erro: a resposta contém conteúdo impróprio");
+    }
+    //console.error('Error validating response:', error.response.promptFeedback);
+  }
+}
+const hino = await run();
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Gerador de Hinos</title>
+  </head>
+  <body>
+    <div class="container mx-auto">
+      <h1>Gerador de Hinos:</h1>
+      <div class="hino whitespace-pre">
+        {hino}
+      </div>
+      <button onclick="run()">Gerar hino</button>
+    </div>
+  </body>
 </html>
